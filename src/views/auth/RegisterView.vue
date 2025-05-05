@@ -21,14 +21,14 @@ import AppLayout from '@/components/layout/AppLayout.vue'
             </div>
           </v-col>
 
-          <v-col cols="12" sm="8" md="6" lg="4">
-            <v-card class="mx-auto register-card" max-width="400" elevation="20">
+          <v-col cols="12" sm="10" md="7" lg="5">
+            <v-card class="mx-auto register-card" elevation="20">
               <v-card-title class="d-flex flex-column align-center">
                 <img class="logo-image" src="/images/SheoutLogo.png" />
                 <h3 class="text-center mt-4">Create Account</h3>
               </v-card-title>
               <v-divider></v-divider>
-              <v-card-text class="bg-surface-light pt-4">
+              <v-card-text class="bg-surface-light pt-4 px-6">
                 <RegisterForm></RegisterForm>
               </v-card-text>
             </v-card>
@@ -50,33 +50,25 @@ import AppLayout from '@/components/layout/AppLayout.vue'
   text-align: center;
   background: linear-gradient(45deg, #ff69b4, #ff1493);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
-  font-family: 'Playfair Display', serif;
 }
 
 .tagline {
-  font-style: italic;
-  font-family: 'Playfair Display', serif;
-  font-size: 2rem;
-  padding-left: 70px;
-  text-align: center;
+  font-size: 1.5rem;
+  padding-left: 40px;
   color: #ff69b4;
 }
 
 .logo-image {
-  width: 100px;
+  max-width: 120px;
   height: auto;
-  margin-top: 16px;
-  border-radius: 50%;
 }
 
 .register-card {
-  background: linear-gradient(135deg, #fff5f7, #ffffff);
-  border: 1px solid rgba(255, 105, 180, 0.1);
-}
-
-.register-card .v-card-title {
-  color: #ff69b4;
-  font-family: 'Playfair Display', serif;
+  border-radius: 16px;
+  overflow: hidden;
+  width: 100%;
+  max-width: 500px;
 }
 </style>

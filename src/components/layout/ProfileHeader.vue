@@ -87,11 +87,7 @@ const onLogout = async () => {
 
         <v-divider class="my-3"></v-divider>
 
-        <v-btn 
-          prepend-icon="mdi-receipt-text" 
-          variant="plain"
-          to="/transaction-history"
-        >
+        <v-btn prepend-icon="mdi-receipt-text" variant="plain" to="/transaction-history">
           Transaction History
         </v-btn>
 

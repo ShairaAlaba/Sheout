@@ -37,21 +37,21 @@ const newItem = ref({
   description: '',
   price: null,
   quantity: null,
-  image: null
+  image: null,
 })
 
 // Form validation rules
-const nameRules = [v => !!v || 'Name is required']
-const descriptionRules = [v => !!v || 'Description is required']
+const nameRules = [(v) => !!v || 'Name is required']
+const descriptionRules = [(v) => !!v || 'Description is required']
 const priceRules = [
-  v => !!v || 'Price is required',
-  v => (v && !isNaN(v) && v > 0) || 'Price must be greater than 0'
+  (v) => !!v || 'Price is required',
+  (v) => (v && !isNaN(v) && v > 0) || 'Price must be greater than 0',
 ]
 const quantityRules = [
-  v => !!v || 'Quantity is required',
-  v => (v && !isNaN(v) && v > 0) || 'Quantity must be greater than 0'
+  (v) => !!v || 'Quantity is required',
+  (v) => (v && !isNaN(v) && v > 0) || 'Quantity must be greater than 0',
 ]
-const imageRules = [v => !!v || 'Image is required']
+const imageRules = [(v) => !!v || 'Image is required']
 
 // File upload handling
 const imageFile = ref(null)
@@ -69,7 +69,7 @@ const handleFileUpload = (event) => {
 // Submit form to add new item
 const submitItem = async () => {
   loading.value = true
-  
+
   try {
     // First upload the image to storage
     if (imageFile.value) {
@@ -77,14 +77,14 @@ const submitItem = async () => {
       const { data, error } = await supabase.storage
         .from('sheout')
         .upload(`image_items/${fileName}`, imageFile.value)
-      
+
       if (error) throw error
-      
+
       // Get public URL for the uploaded image
-      const { data: { publicUrl } } = supabase.storage
-        .from('sheout')
-        .getPublicUrl(`image_items/${fileName}`)
-      
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from('sheout').getPublicUrl(`image_items/${fileName}`)
+
       // Create item object
       const itemData = {
         name: newItem.value.name,
@@ -92,16 +92,16 @@ const submitItem = async () => {
         price: parseFloat(newItem.value.price),
         quantity: parseInt(newItem.value.quantity),
         seller_id: authStore.userData.id,
-        image: publicUrl
+        image: publicUrl,
       }
-      
+
       // Add item using the store
       const addedItem = await itemsStore.addItem(itemData)
-      
+
       if (!addedItem) {
         throw new Error('Failed to add item to database')
       }
-      
+
       // Reset form
       resetForm()
       dialog.value = false
@@ -120,7 +120,7 @@ const resetForm = () => {
     description: '',
     price: null,
     quantity: null,
-    image: null
+    image: null,
   }
   imageFile.value = null
   previewUrl.value = null
@@ -132,7 +132,7 @@ const openBuyModal = (item) => {
     router.push('/login')
     return
   }
-  
+
   selectedItem.value = item
   transactionDialog.value = true
 }
@@ -152,12 +152,14 @@ const addToCart = (item, quantity = 1) => {
 const handleTransactionComplete = (transaction) => {
   // Update the item quantity in the store
   itemsStore.updateItemQuantity(
-    transaction.item.id, 
-    transaction.item.quantity - transaction.quantity
+    transaction.item.id,
+    transaction.item.quantity - transaction.quantity,
   )
-  
+
   // Show success message
-  alert(`Purchase successful! You bought ${transaction.quantity} ${transaction.item.name} for ${formatCurrency(transaction.total)}`)
+  alert(
+    `Purchase successful! You bought ${transaction.quantity} ${transaction.item.name} for ${formatCurrency(transaction.total)}`,
+  )
 }
 
 onMounted(async () => {
@@ -172,51 +174,44 @@ onMounted(async () => {
       <v-container>
         <!-- Page Header -->
         <div class="d-flex align-center mb-6">
-          <h1 class="text-h4 font-weight-bold text-pink">Dashboard</h1>
+          <h1 class="text-h4 font-weight-bold text-pink">Happy Shopping</h1>
           <v-spacer></v-spacer>
-          <v-btn 
-            color="pink" 
-            prepend-icon="mdi-plus" 
-            variant="elevated" 
-            @click="dialog = true"
-          >
+          <v-btn color="pink" prepend-icon="mdi-plus" variant="elevated" @click="dialog = true">
             Sell Item
           </v-btn>
         </div>
-        
+
         <!-- Loading State -->
         <div v-if="itemsStore.isLoading" class="text-center py-4">
           <v-progress-circular indeterminate color="pink"></v-progress-circular>
           <p class="mt-2">Loading items...</p>
         </div>
-        
+
         <template v-else>
           <!-- Your Items Section -->
           <v-card class="mb-6">
-            <v-card-title class="text-h5 font-weight-bold">
-              Your Items for Sale
-            </v-card-title>
+            <v-card-title class="text-h5 font-weight-bold"> Your Items for Sale </v-card-title>
             <v-card-text>
               <v-row v-if="userItems.length > 0">
-                <v-col 
-                  v-for="(item, index) in userItems" 
-                  :key="item.id || index" 
-                  cols="12" sm="6" md="4" lg="3"
+                <v-col
+                  v-for="(item, index) in userItems"
+                  :key="item.id || index"
+                  cols="12"
+                  sm="6"
+                  md="4"
+                  lg="3"
                 >
                   <v-card height="100%" @click="openDetailModal(item)" class="item-card">
-                    <v-img
-                      :src="item.image"
-                      height="200"
-                      cover
-                      class="bg-grey-lighten-2"
-                    ></v-img>
+                    <v-img :src="item.image" height="200" cover class="bg-grey-lighten-2"></v-img>
                     <v-card-title class="text-subtitle-1 font-weight-bold">
                       {{ item.name }}
                     </v-card-title>
                     <v-card-text>
                       <p class="text-truncate mb-2">{{ truncateText(item.description, 60) }}</p>
                       <div class="d-flex justify-space-between align-center">
-                        <span class="text-pink font-weight-bold">{{ formatCurrency(item.price) }}</span>
+                        <span class="text-pink font-weight-bold">{{
+                          formatCurrency(item.price)
+                        }}</span>
                         <span class="text-caption">Qty: {{ item.quantity }}</span>
                       </div>
                     </v-card-text>
@@ -229,7 +224,7 @@ onMounted(async () => {
               </div>
             </v-card-text>
           </v-card>
-          
+
           <!-- Market Items Section -->
           <v-card>
             <v-card-title class="text-h5 font-weight-bold">
@@ -237,10 +232,13 @@ onMounted(async () => {
             </v-card-title>
             <v-card-text>
               <v-row v-if="marketItems.length > 0">
-                <v-col 
-                  v-for="(item, index) in marketItems" 
-                  :key="item.id || index" 
-                  cols="12" sm="6" md="4" lg="3"
+                <v-col
+                  v-for="(item, index) in marketItems"
+                  :key="item.id || index"
+                  cols="12"
+                  sm="6"
+                  md="4"
+                  lg="3"
                 >
                   <v-card height="100%" class="item-card">
                     <v-img
@@ -250,19 +248,24 @@ onMounted(async () => {
                       class="bg-grey-lighten-2"
                       @click="openDetailModal(item)"
                     ></v-img>
-                    <v-card-title class="text-subtitle-1 font-weight-bold" @click="openDetailModal(item)">
+                    <v-card-title
+                      class="text-subtitle-1 font-weight-bold"
+                      @click="openDetailModal(item)"
+                    >
                       {{ item.name }}
                     </v-card-title>
                     <v-card-text @click="openDetailModal(item)">
                       <p class="text-truncate mb-2">{{ truncateText(item.description, 60) }}</p>
                       <div class="d-flex justify-space-between align-center">
-                        <span class="text-pink font-weight-bold">{{ formatCurrency(item.price) }}</span>
+                        <span class="text-pink font-weight-bold">{{
+                          formatCurrency(item.price)
+                        }}</span>
                         <span class="text-caption">Qty: {{ item.quantity }}</span>
                       </div>
                     </v-card-text>
                     <v-card-actions class="d-flex flex-column gap-2">
-                      <v-btn 
-                        color="pink" 
+                      <v-btn
+                        color="pink"
                         variant="text"
                         prepend-icon="mdi-cart-plus"
                         @click.stop="addToCart(item)"
@@ -270,12 +273,7 @@ onMounted(async () => {
                       >
                         Add to Cart
                       </v-btn>
-                      <v-btn 
-                        color="pink" 
-                        variant="elevated"
-                        @click.stop="openBuyModal(item)"
-                        block
-                      >
+                      <v-btn color="pink" variant="elevated" @click.stop="openBuyModal(item)" block>
                         Buy Now
                       </v-btn>
                     </v-card-actions>
@@ -290,7 +288,7 @@ onMounted(async () => {
           </v-card>
         </template>
       </v-container>
-      
+
       <!-- Sell Item Dialog -->
       <v-dialog v-model="dialog" max-width="600px">
         <v-card>
@@ -305,14 +303,14 @@ onMounted(async () => {
                 :rules="nameRules"
                 required
               ></v-text-field>
-              
+
               <v-textarea
                 v-model="newItem.description"
                 label="Description"
                 :rules="descriptionRules"
                 required
               ></v-textarea>
-              
+
               <v-row>
                 <v-col cols="6">
                   <v-text-field
@@ -333,7 +331,7 @@ onMounted(async () => {
                   ></v-text-field>
                 </v-col>
               </v-row>
-              
+
               <v-file-input
                 label="Upload Image"
                 accept="image/*"
@@ -342,7 +340,7 @@ onMounted(async () => {
                 :rules="imageRules"
                 required
               ></v-file-input>
-              
+
               <div v-if="previewUrl" class="mb-4">
                 <p class="text-body-2 mb-2">Image Preview:</p>
                 <v-img
@@ -357,9 +355,9 @@ onMounted(async () => {
           <v-card-actions>
             <v-spacer></v-spacer>
             <v-btn color="grey" variant="text" @click="dialog = false">Cancel</v-btn>
-            <v-btn 
-              color="pink" 
-              variant="elevated" 
+            <v-btn
+              color="pink"
+              variant="elevated"
               :loading="loading"
               :disabled="!formValid"
               @click="submitItem"
@@ -369,7 +367,7 @@ onMounted(async () => {
           </v-card-actions>
         </v-card>
       </v-dialog>
-      
+
       <!-- Transaction Modal -->
       <TransactionModal
         v-if="selectedItem"
@@ -377,20 +375,18 @@ onMounted(async () => {
         v-model:show="transactionDialog"
         @transaction-complete="handleTransactionComplete"
       />
-      
+
       <!-- Item Detail Modal -->
-      <ItemDetailModal
-        v-if="selectedItem"
-        :item="selectedItem"
-        v-model:show="detailDialog"
-      />
+      <ItemDetailModal v-if="selectedItem" :item="selectedItem" v-model:show="detailDialog" />
     </template>
   </DashboardLayout>
 </template>
 
 <style scoped>
 .item-card {
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
   cursor: pointer;
   height: 100%;
   display: flex;

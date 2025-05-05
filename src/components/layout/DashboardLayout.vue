@@ -20,7 +20,7 @@ const onToggleTheme = () => {
 // Get Authentication status from supabase
 const getLoggedStatus = async () => {
   isLoggedIn.value = await authStore.isAuthenticated()
-  
+
   // If user is logged in, ensure items are loaded
   if (isLoggedIn.value) {
     await itemsStore.fetchAllItems()
@@ -36,7 +36,7 @@ onMounted(() => {
   <v-responsive>
     <v-app :theme="theme">
       <v-app-bar color="pink" border class="px-3">
-        <h1 class="text-h6"><i>Sheout</i></h1>
+        <h1 class="text-h3"><i>Sheout</i></h1>
 
         <v-spacer></v-spacer>
 
@@ -48,14 +48,14 @@ onMounted(() => {
             class="mr-4"
           >
             <v-btn icon @click="cartStore.toggleCart">
-              <v-icon>mdi-cart</v-icon>
+              <v-icon size="large">mdi-cart</v-icon>
             </v-btn>
           </v-badge>
-          
+
           <ProfileHeader></ProfileHeader>
         </div>
 
-        <v-btn icon @click="onToggleTheme">
+        <v-btn icon @click="onToggleTheme" class="ml-5">
           <v-icon v-if="theme === 'light'">mdi-weather-night</v-icon>
           <v-icon v-else>mdi-weather-sunny</v-icon>
         </v-btn>
@@ -67,8 +67,18 @@ onMounted(() => {
         </v-container>
       </v-main>
 
-      <v-footer color="pink" class="font-weight-bold" app border> alrights 2025</v-footer>
-      
+      <v-footer color="pink" class="font-weight-bold" app border>
+        <div class="text-center w-100">
+          <div class="text-white">
+            © {{ new Date().getFullYear() }} Sheout - Your Ultimate Fashion Destination
+          </div>
+          <div class="text-caption text-white">
+            Shop the latest trends in fashion and style. Quality products, secure shopping, and fast
+            delivery.
+          </div>
+        </div>
+      </v-footer>
+
       <!-- Cart Drawer -->
       <CartDrawer v-if="isLoggedIn" />
     </v-app>
