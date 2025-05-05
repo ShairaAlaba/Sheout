@@ -164,7 +164,7 @@ const handleTransactionComplete = (transaction) => {
 
 onMounted(async () => {
   // Force reload all sample items to ensure they all appear
-  await itemsStore.reloadAllSampleItems()
+  await itemsStore.loadFirstItem()
 })
 </script>
 
@@ -184,7 +184,7 @@ onMounted(async () => {
         <!-- Loading State -->
         <div v-if="itemsStore.isLoading" class="text-center py-4">
           <v-progress-circular indeterminate color="pink"></v-progress-circular>
-          <p class="mt-2">Loading items...</p>
+          <p class="mt-2 text-body-1">Loading items...</p>
         </div>
 
         <template v-else>
@@ -219,8 +219,10 @@ onMounted(async () => {
                 </v-col>
               </v-row>
               <div v-else class="text-center py-4">
-                <v-icon icon="mdi-basket-off" size="64" color="grey-lighten-1"></v-icon>
-                <p class="text-body-1 mt-2">You don't have any items for sale yet.</p>
+                <p class="text-body-1">You don't have any items for sale yet.</p>
+                <v-btn color="pink" prepend-icon="mdi-plus" class="mt-2" @click="dialog = true">
+                  Sell Your First Item
+                </v-btn>
               </div>
             </v-card-text>
           </v-card>
@@ -228,7 +230,7 @@ onMounted(async () => {
           <!-- Market Items Section -->
           <v-card>
             <v-card-title class="text-h5 font-weight-bold">
-              Items Available in Market
+              Market Items
             </v-card-title>
             <v-card-text>
               <v-row v-if="marketItems.length > 0">
@@ -281,8 +283,7 @@ onMounted(async () => {
                 </v-col>
               </v-row>
               <div v-else class="text-center py-4">
-                <v-icon icon="mdi-store-off" size="64" color="grey-lighten-1"></v-icon>
-                <p class="text-body-1 mt-2">No items available in the market.</p>
+                <p class="text-body-1">No items available in the market.</p>
               </div>
             </v-card-text>
           </v-card>

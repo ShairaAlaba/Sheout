@@ -3,12 +3,22 @@ import { ref, computed } from 'vue'
 import { supabase } from '@/utils/supabase'
 import { items as sampleItems } from '@/components/common/ItemList'
 
+// Debounce function to limit how often a function can be called
+const debounce = (fn, delay) => {
+  let timer = null
+  return function(...args) {
+    clearTimeout(timer)
+    timer = setTimeout(() => fn.apply(this, args), delay)
+  }
+}
+
 export const useItemsStore = defineStore('items', () => {
   // State
   const allItems = ref([])
   const isLoading = ref(false)
   const error = ref(null)
   const sampleItemsAdded = ref(false)
+  const firstItemLoaded = ref(false)
   
   // Getters
   const marketItems = computed(() => {
@@ -20,10 +30,39 @@ export const useItemsStore = defineStore('items', () => {
     return allItems.value.filter(item => item.seller_id === userId)
   })
   
+  // Load the first item immediately for better UX
+  const loadFirstItem = async () => {
+    if (firstItemLoaded.value) return
+    
+    try {
+      // Load just the first item from sample items
+      const firstItem = sampleItems[0]
+      
+      // Add to local state immediately for instant display
+      if (!allItems.value.some(item => item.name === firstItem.name)) {
+        allItems.value = [{
+          ...firstItem,
+          id: 'temp-id-' + Date.now(),
+          seller_id: null
+        }, ...allItems.value]
+      }
+      
+      firstItemLoaded.value = true
+    } catch (err) {
+      console.error('Error loading first item:', err)
+    }
+  }
+  
+  // Debounced version of loadFirstItem
+  const debouncedLoadFirstItem = debounce(loadFirstItem, 300)
+  
   // Actions
   const fetchAllItems = async (forceRefresh = false) => {
     isLoading.value = true
     error.value = null
+    
+    // Load first item immediately for better UX
+    debouncedLoadFirstItem()
     
     try {
       // Fetch items from the database
@@ -35,6 +74,7 @@ export const useItemsStore = defineStore('items', () => {
       if (fetchError) throw fetchError
       
       if (data && data.length > 0) {
+        // Replace the temporary first item with actual data
         allItems.value = data
         
         // Check if all sample items are in the database
@@ -100,108 +140,74 @@ export const useItemsStore = defineStore('items', () => {
         
         if (newItems.length > 0) {
           allItems.value = [...allItems.value, ...newItems]
-          console.log(`Added ${newItems.length} new items to store`)
         }
         
         return data
       }
+      
       return []
     } catch (err) {
       console.error('Error adding sample items:', err)
-      
-      // Fallback to local sample items
-      const localSampleItems = itemsToProcess.map(item => ({
-        ...item,
-        id: null,
-        seller_id: null
-      }))
-      
-      // Add these to allItems if they're not already there
-      const existingNames = new Set(allItems.value.map(item => item.name))
-      const newItems = localSampleItems.filter(item => !existingNames.has(item.name))
-      
-      if (newItems.length > 0) {
-        allItems.value = [...allItems.value, ...newItems]
-        console.log(`Added ${newItems.length} local sample items to store`)
-      }
-      
       return []
     }
   }
   
-  const addItem = async (newItem) => {
-    isLoading.value = true
-    error.value = null
-    
+  const addItem = async (itemData) => {
     try {
-      const { data, error: addError } = await supabase
+      const { data, error } = await supabase
         .from('items')
-        .insert(newItem)
+        .insert([itemData])
         .select()
       
-      if (addError) throw addError
+      if (error) throw error
       
       if (data && data.length > 0) {
         // Add the new item to the local state
-        allItems.value.unshift(data[0])
+        allItems.value = [data[0], ...allItems.value]
         return data[0]
       }
+      
+      return null
     } catch (err) {
       console.error('Error adding item:', err)
-      error.value = err.message
       return null
-    } finally {
-      isLoading.value = false
     }
   }
   
-  const updateItemQuantity = async (itemId, newQuantity) => {
+  const updateItemQuantity = (itemId, newQuantity) => {
     if (!itemId) return
     
-    try {
-      const { error: updateError } = await supabase
-        .from('items')
-        .update({ quantity: newQuantity })
-        .eq('id', itemId)
-      
-      if (updateError) throw updateError
-      
-      // Update local state
-      const index = allItems.value.findIndex(item => item.id === itemId)
-      if (index !== -1) {
-        allItems.value[index].quantity = newQuantity
-        
-        // Remove item from list if quantity is 0
-        if (newQuantity <= 0) {
-          allItems.value.splice(index, 1)
-        }
+    // Update the item in the local state
+    const itemIndex = allItems.value.findIndex(item => item.id === itemId)
+    
+    if (itemIndex !== -1) {
+      allItems.value[itemIndex] = {
+        ...allItems.value[itemIndex],
+        quantity: newQuantity
       }
-    } catch (err) {
-      console.error('Error updating item quantity:', err)
-      error.value = err.message
     }
+    
+    // Update the item in the database
+    supabase
+      .from('items')
+      .update({ quantity: newQuantity })
+      .eq('id', itemId)
+      .then(({ error }) => {
+        if (error) {
+          console.error('Error updating item quantity:', error)
+        }
+      })
   }
-  
-  // Force a reload of all sample items
-  const reloadAllSampleItems = async () => {
-    console.log('Force reloading all sample items')
-    sampleItemsAdded.value = false
-    await fetchAllItems(true)
-  }
-  
-  // Initialize store by fetching items
-  fetchAllItems()
   
   return {
     allItems,
-    marketItems,
-    userItems,
     isLoading,
     error,
+    marketItems,
+    userItems,
     fetchAllItems,
     addItem,
     updateItemQuantity,
-    addSampleItems,
-    reloadAllSampleItems
+    loadFirstItem
   }
 })
