@@ -5,17 +5,21 @@ import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import { supabase } from '@/utils/supabase'
 import { useAuthUserStore } from '@/stores/authUser'
 import { useItemsStore } from '@/stores/itemsStore'
+import { useCartStore } from '@/stores/cartStore'
 import { formatCurrency, truncateText } from '@/utils/helpers'
 import TransactionModal from '@/components/common/TransactionModal.vue'
+import ItemDetailModal from '@/components/common/ItemDetailModal.vue'
 
 const router = useRouter()
 const authStore = useAuthUserStore()
 const itemsStore = useItemsStore()
+const cartStore = useCartStore()
 
 const dialog = ref(false)
 const loading = ref(false)
 const formValid = ref(true)
 const transactionDialog = ref(false)
+const detailDialog = ref(false)
 const selectedItem = ref(null)
 
 // Get market items from the store
@@ -133,6 +137,17 @@ const openBuyModal = (item) => {
   transactionDialog.value = true
 }
 
+// Open item detail modal
+const openDetailModal = (item) => {
+  selectedItem.value = item
+  detailDialog.value = true
+}
+
+// Add item to cart
+const addToCart = (item, quantity = 1) => {
+  cartStore.addToCart(item, quantity)
+}
+
 // Handle transaction completion
 const handleTransactionComplete = (transaction) => {
   // Update the item quantity in the store
@@ -188,7 +203,7 @@ onMounted(async () => {
                   :key="item.id || index" 
                   cols="12" sm="6" md="4" lg="3"
                 >
-                  <v-card height="100%">
+                  <v-card height="100%" @click="openDetailModal(item)" class="item-card">
                     <v-img
                       :src="item.image"
                       height="200"
@@ -227,29 +242,39 @@ onMounted(async () => {
                   :key="item.id || index" 
                   cols="12" sm="6" md="4" lg="3"
                 >
-                  <v-card height="100%">
+                  <v-card height="100%" class="item-card">
                     <v-img
                       :src="item.image"
                       height="200"
                       cover
                       class="bg-grey-lighten-2"
+                      @click="openDetailModal(item)"
                     ></v-img>
-                    <v-card-title class="text-subtitle-1 font-weight-bold">
+                    <v-card-title class="text-subtitle-1 font-weight-bold" @click="openDetailModal(item)">
                       {{ item.name }}
                     </v-card-title>
-                    <v-card-text>
+                    <v-card-text @click="openDetailModal(item)">
                       <p class="text-truncate mb-2">{{ truncateText(item.description, 60) }}</p>
                       <div class="d-flex justify-space-between align-center">
                         <span class="text-pink font-weight-bold">{{ formatCurrency(item.price) }}</span>
                         <span class="text-caption">Qty: {{ item.quantity }}</span>
                       </div>
                     </v-card-text>
-                    <v-card-actions>
+                    <v-card-actions class="d-flex flex-column gap-2">
                       <v-btn 
                         color="pink" 
-                        variant="text" 
+                        variant="text"
+                        prepend-icon="mdi-cart-plus"
+                        @click.stop="addToCart(item)"
                         block
-                        @click="openBuyModal(item)"
+                      >
+                        Add to Cart
+                      </v-btn>
+                      <v-btn 
+                        color="pink" 
+                        variant="elevated"
+                        @click.stop="openBuyModal(item)"
+                        block
                       >
                         Buy Now
                       </v-btn>
@@ -352,6 +377,53 @@ onMounted(async () => {
         v-model:show="transactionDialog"
         @transaction-complete="handleTransactionComplete"
       />
+      
+      <!-- Item Detail Modal -->
+      <ItemDetailModal
+        v-if="selectedItem"
+        :item="selectedItem"
+        v-model:show="detailDialog"
+      />
     </template>
   </DashboardLayout>
 </template>
+
+<style scoped>
+.item-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.item-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.item-card .v-img {
+  height: 300px !important;
+  object-fit: cover;
+  object-position: center;
+}
+
+.item-card .v-card-title {
+  font-size: 1.1rem;
+  line-height: 1.4;
+  height: 3.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.item-card .v-card-text {
+  flex-grow: 1;
+}
+
+.item-card .v-card-actions {
+  padding: 12px 16px;
+}
+</style>
