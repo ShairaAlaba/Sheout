@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import {
   requiredValidator,
   emailValidator,
@@ -7,16 +7,19 @@ import {
   confirmedValidator,
 } from '@/utils/validator'
 import { formActionDefault, supabase } from '@/utils/supabase'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import AlertNotication from '@/components/common/AlertNotificatio.vue'
+
 const router = useRouter()
+const route = useRoute()
+
 // Load Variables
 const formDataDefault = {
   firstname: '',
   lastname: '',
   email: '',
   password: '',
-  password_confirmation: '',
+  confirmPassword: '',
 }
 const formData = ref({
   ...formDataDefault,
@@ -25,12 +28,19 @@ const formAction = ref({
   ...formActionDefault,
 })
 const isPasswordVisible = ref(false)
-const isPasswordConfirmVisible = ref(false)
+const isConfirmPasswordVisible = ref(false)
 const refVForm = ref()
+const redirectPath = ref(null)
 
-// Register Functionality
+// Check for redirect parameter in URL
+onMounted(() => {
+  if (route.query.redirect) {
+    redirectPath.value = route.query.redirect
+  }
+})
+
 const onSubmit = async () => {
-  // Reset Form Action utils
+  // Reset Form Action utils; Turn on processing at the same time
   formAction.value = { ...formActionDefault, formProcess: true }
 
   const { data, error } = await supabase.auth.signUp({
@@ -40,8 +50,6 @@ const onSubmit = async () => {
       data: {
         firstname: formData.value.firstname,
         lastname: formData.value.lastname,
-        is_admin: false, // Just turn to true if super admin account
-        // role: 'Administrator' // If role based; just change the string based on role
       },
     },
   })
@@ -53,8 +61,12 @@ const onSubmit = async () => {
   } else if (data) {
     // Add Success Message
     formAction.value.formSuccessMessage = 'Successfully Registered Account.'
-    // Redirect Acct to Dashboard
-    router.replace('/dashboard')
+    // Redirect to intended destination or dashboard
+    if (redirectPath.value) {
+      router.replace(redirectPath.value)
+    } else {
+      router.replace('/dashboard')
+    }
   }
 
   // Reset Form
@@ -63,97 +75,122 @@ const onSubmit = async () => {
   formAction.value.formProcess = false
 }
 
-// Trigger Validators
 const onFormSubmit = () => {
   refVForm.value?.validate().then(({ valid }) => {
     if (valid) onSubmit()
   })
 }
+
+const onLoginClick = () => {
+  // Pass along the redirect if it exists
+  if (redirectPath.value) {
+    router.push({ 
+      name: 'login', 
+      query: { redirect: redirectPath.value } 
+    })
+  } else {
+    router.push('/login')
+  }
+}
 </script>
 
 <template>
-  <AlertNotication
-    :formSuccessMessage="formAction.formSuccessMessage"
-    :formErrorMessage="formAction.formErrorMessage"
-  />
-  <v-form ref="refVForm" @submit.prevent="onFormSubmit" fast-fail>
-    <v-text-field
-      v-model="formData.firstname"
-      label="Firstname"
-      :rules="[requiredValidator]"
-      variant="outlined"
-    ></v-text-field>
+  <v-form ref="refVForm" @submit.prevent="onFormSubmit">
+    <AlertNotication
+      :error-message="formAction.formErrorMessage"
+      :success-message="formAction.formSuccessMessage"
+    ></AlertNotication>
 
-    <v-text-field
-      v-model="formData.lastname"
-      label="Lastname"
-      :rules="[requiredValidator]"
-      variant="outlined"
-    ></v-text-field>
+    <v-row>
+      <v-col cols="12" sm="6">
+        <v-text-field
+          v-model="formData.firstname"
+          class="mb-3"
+          density="comfortable"
+          label="First Name"
+          variant="outlined"
+          prepend-inner-icon="mdi-account-outline"
+          :rules="[requiredValidator]"
+        ></v-text-field>
+      </v-col>
+
+      <v-col cols="12" sm="6">
+        <v-text-field
+          v-model="formData.lastname"
+          class="mb-3"
+          density="comfortable"
+          label="Last Name"
+          variant="outlined"
+          prepend-inner-icon="mdi-account-outline"
+          :rules="[requiredValidator]"
+        ></v-text-field>
+      </v-col>
+    </v-row>
 
     <v-text-field
       v-model="formData.email"
+      class="mb-3"
+      density="comfortable"
       label="Email"
+      type="email"
+      variant="outlined"
       prepend-inner-icon="mdi-email-outline"
       :rules="[requiredValidator, emailValidator]"
-      variant="outlined"
     ></v-text-field>
 
     <v-text-field
       v-model="formData.password"
-      prepend-inner-icon="mdi-lock-outline"
+      class="mb-3"
+      density="comfortable"
       label="Password"
-      :type="isPasswordVisible ? 'text' : 'password'"
-      :append-inner-icon="isPasswordVisible ? 'mdi-eye-off' : 'mdi-eye'"
-      @click:append-inner="isPasswordVisible = !isPasswordVisible"
-      :rules="[requiredValidator, passwordValidator]"
       variant="outlined"
+      prepend-inner-icon="mdi-lock-outline"
+      :append-inner-icon="isPasswordVisible ? 'mdi-eye-off' : 'mdi-eye'"
+      :rules="[requiredValidator, passwordValidator]"
+      :type="isPasswordVisible ? 'text' : 'password'"
+      @click:append-inner="isPasswordVisible = !isPasswordVisible"
     ></v-text-field>
 
     <v-text-field
-      v-model="formData.password_confirmation"
-      label="Password Confirmation"
-      :type="isPasswordConfirmVisible ? 'text' : 'password'"
-      :append-inner-icon="isPasswordConfirmVisible ? 'mdi-eye-off' : 'mdi-eye'"
-      @click:append-inner="isPasswordConfirmVisible = !isPasswordConfirmVisible"
+      v-model="formData.confirmPassword"
+      class="mb-3"
+      density="comfortable"
+      label="Confirm Password"
+      variant="outlined"
+      prepend-inner-icon="mdi-lock-outline"
+      :append-inner-icon="isConfirmPasswordVisible ? 'mdi-eye-off' : 'mdi-eye'"
       :rules="[
         requiredValidator,
-        confirmedValidator(formData.password_confirmation, formData.password),
+        confirmedValidator(formData.confirmPassword, formData.password),
       ]"
-      variant="outlined"
+      :type="isConfirmPasswordVisible ? 'text' : 'password'"
+      @click:append-inner="isConfirmPasswordVisible = !isConfirmPasswordVisible"
     ></v-text-field>
 
-    <div class="d-flex justify-center">
-      <v-hover v-slot="{ isHovering, props }">
-        <v-btn
-          v-bind="props"
-          :color="isHovering ? 'purple-darken-1' : undefined"
-          class="mt-2 submit-button"
-          type="submit"
-          ripple
-          prepend-icon="mdi-account-plus"
-          :disabled="formAction.formProcess"
-          :loading="formAction.formProcess"
-          block
-        >
-          Register
-        </v-btn>
-      </v-hover>
+    <div class="d-flex flex-column">
+      <v-btn
+        :loading="formAction.formProcess"
+        block
+        class="mt-2 text-white"
+        color="pink"
+        size="large"
+        type="submit"
+        variant="flat"
+        prepend-icon="mdi-account-plus"
+      >
+        Sign Up
+      </v-btn>
+
+      <div class="mt-4 text-center">
+        <span>Already have an account?</span>
+        <v-btn class="ms-2 text-pink" variant="text" @click="onLoginClick">Sign In</v-btn>
+      </div>
     </div>
   </v-form>
-  <v-divider class="mt-5"></v-divider>
-  <h5 class="mt-2">
-    Already have an account?
-    <RouterLink to="/" class="text-decoration-none purple-link"> Login Here </RouterLink>
-  </h5>
 </template>
 
 <style scoped>
-.submit-button {
-  background-color: #e1bee7;
-}
-
-.purple-link {
-  color: #7e57c2;
+.text-pink {
+  color: #ff69b4;
 }
 </style>
