@@ -1,8 +1,8 @@
 <script setup>
 import { ref } from 'vue'
-import { useAuthUserStore } from '../stores/authUser'
-import { supabase, formActionDefault } from '../utils/supabase'
-import { getAvatarText } from '../utils/helpers'
+import { useAuthUserStore } from '@/stores/authUser'
+import { supabase, formActionDefault } from '../../utils/supabase'
+import { getAvatarText } from '../../utils/helpers'
 import { useRouter } from 'vue-router'
 
 // Utilize pre-defined vue functions
@@ -50,8 +50,8 @@ const onLogout = async () => {
         >
         </v-avatar>
 
-        <v-avatar v-else color="orange-darken-3" size="large">
-          <span class="text-h5">
+        <v-avatar v-else size="large" color="pink-lighten-5">
+          <span class="text-h5 text-pink">
             {{ getAvatarText(authStore.userData.firstname + ' ' + authStore.userData.lastname) }}
           </span>
         </v-avatar>
@@ -74,8 +74,8 @@ const onLogout = async () => {
               >
               </v-avatar>
 
-              <v-avatar v-else color="orange-darken-3" size="large">
-                <span class="text-h5">
+              <v-avatar v-else color="pink-lighten-5" size="large">
+                <span class="text-h5 text-pink">
                   {{
                     getAvatarText(authStore.userData.firstname + ' ' + authStore.userData.lastname)
                   }}
@@ -87,9 +87,7 @@ const onLogout = async () => {
 
         <v-divider class="my-3"></v-divider>
 
-        <v-btn prepend-icon="mdi-wrench" variant="plain" to="/account/settings">
-          Account Settings
-        </v-btn>
+        <v-btn prepend-icon="mdi-wrench" variant="plain"> Account Settings </v-btn>
 
         <v-divider class="my-3"></v-divider>
 

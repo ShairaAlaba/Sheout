@@ -5,8 +5,8 @@ import {
   emailValidator,
   passwordValidator,
   confirmedValidator,
-} from '@/components/utils/validator'
-import { formActionDefault, supabase } from '@/components/utils/supabase'
+} from '@/utils/validator'
+import { formActionDefault, supabase } from '@/utils/supabase'
 import { useRouter } from 'vue-router'
 import AlertNotication from '@/components/common/AlertNotificatio.vue'
 const router = useRouter()

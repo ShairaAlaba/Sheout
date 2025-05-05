@@ -1,9 +1,9 @@
 <script setup>
 import { ref } from 'vue'
-import { requiredValidator, passwordValidator } from '@/components/utils/validator'
+import { requiredValidator, passwordValidator } from '@/utils/validator'
 import { useRouter } from 'vue-router'
 import AlertNotication from '@/components/common/AlertNotificatio.vue'
-import { formActionDefault, supabase } from '@/components/utils/supabase'
+import { formActionDefault, supabase } from '@/utils/supabase'
 
 // Utilize pre-defined vue functions
 const router = useRouter()
