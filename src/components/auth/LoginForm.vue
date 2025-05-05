@@ -1,12 +1,13 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { requiredValidator, passwordValidator } from '@/utils/validator'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import AlertNotication from '@/components/common/AlertNotificatio.vue'
 import { formActionDefault, supabase } from '@/utils/supabase'
 
 // Utilize pre-defined vue functions
 const router = useRouter()
+const route = useRoute()
 
 // Load Variables
 const formDataDefault = {
@@ -21,6 +22,14 @@ const formAction = ref({
 })
 const isPasswordVisible = ref(false)
 const refVForm = ref()
+const redirectPath = ref(null)
+
+// Check for redirect parameter in URL
+onMounted(() => {
+  if (route.query.redirect) {
+    redirectPath.value = route.query.redirect
+  }
+})
 
 const onSubmit = async () => {
   // Reset Form Action utils; Turn on processing at the same time
@@ -38,8 +47,13 @@ const onSubmit = async () => {
   } else if (data) {
     // Add Success Message
     formAction.value.formSuccessMessage = 'Successfully Logged Account.'
-    // Redirect Acct to Dashboard
-    router.replace('/dashboard')
+
+    // Redirect to intended destination or dashboard
+    if (redirectPath.value) {
+      router.replace(redirectPath.value)
+    } else {
+      router.replace('/dashboard')
+    }
   }
 
   // Reset Form
@@ -53,64 +67,75 @@ const onFormSubmit = () => {
     if (valid) onSubmit()
   })
 }
+
+const onRegisterClick = () => {
+  // Pass along the redirect if it exists
+  if (redirectPath.value) {
+    router.push({
+      name: 'register',
+      query: { redirect: redirectPath.value },
+    })
+  } else {
+    router.push('/register')
+  }
+}
 </script>
 
 <template>
-  <AlertNotication
-    :formSuccessMessage="formAction.formSuccessMessage"
-    :formErrorMessage="formAction.formErrorMessage"
-  />
-  <v-form ref="refVForm" @submit.prevent="onFormSubmit" fast-fail>
+  <v-form ref="refVForm" @submit.prevent="onFormSubmit">
+    <AlertNotication
+      :error-message="formAction.formErrorMessage"
+      :success-message="formAction.formSuccessMessage"
+    ></AlertNotication>
+
     <v-text-field
-      prepend-inner-icon="mdi-email-outline"
       v-model="formData.email"
+      class="mb-3"
+      density="comfortable"
       label="Email"
       type="email"
       variant="outlined"
+      prepend-inner-icon="mdi-email-outline"
       :rules="[requiredValidator]"
     ></v-text-field>
 
     <v-text-field
       v-model="formData.password"
-      :rules="[requiredValidator]"
+      class="mb-3"
+      density="comfortable"
       label="Password"
-      :type="isPasswordVisible ? 'text' : 'password'"
-      :append-inner-icon="isPasswordVisible ? 'mdi-eye-off' : 'mdi-eye'"
-      @click:append-inner="isPasswordVisible = !isPasswordVisible"
       variant="outlined"
+      prepend-inner-icon="mdi-lock-outline"
+      :append-inner-icon="isPasswordVisible ? 'mdi-eye-off' : 'mdi-eye'"
+      :rules="[requiredValidator, passwordValidator]"
+      :type="isPasswordVisible ? 'text' : 'password'"
+      @click:append-inner="isPasswordVisible = !isPasswordVisible"
     ></v-text-field>
 
-    <div class="d-flex justify-center">
-      <v-hover v-slot="{ isHovering, props }">
-        <v-btn
-          v-bind="props"
-          :color="isHovering ? 'purple-darken-1' : undefined"
-          class="mt-2 submit-button"
-          type="submit"
-          ripple
-          prepend-icon="mdi-login"
-          :loading="formAction.formProcess"
-          :disabled="formAction.formProcess"
-          block
-        >
-          Login
-        </v-btn>
-      </v-hover>
+    <div class="d-flex flex-column">
+      <v-btn
+        :loading="formAction.formProcess"
+        block
+        class="mt-2 text-white"
+        color="pink"
+        size="large"
+        type="submit"
+        variant="flat"
+        prepend-icon="mdi-login"
+      >
+        Sign In
+      </v-btn>
+
+      <div class="mt-4 text-center">
+        <span>Don't have an account?</span>
+        <v-btn class="ms-2 text-pink" variant="text" @click="onRegisterClick">Sign Up</v-btn>
+      </div>
     </div>
   </v-form>
-  <v-divider class="mt-5"></v-divider>
-  <h5 class="mt-2">
-    Don't have an account?
-    <RouterLink to="/register" class="text-decoration-none purple-link"> Register Here </RouterLink>
-  </h5>
 </template>
 
 <style scoped>
-.submit-button {
-  background-color: #e1bee7;
-}
-
-.purple-link {
-  color: #7e57c2;
+.text-pink {
+  color: #ff69b4;
 }
 </style>
