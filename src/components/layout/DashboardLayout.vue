@@ -1,11 +1,14 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import ProfileHeader from '@/components/layout/ProfileHeader.vue'
+import CartDrawer from '@/components/common/CartDrawer.vue'
 import { useAuthUserStore } from '@/stores/authUser'
 import { useItemsStore } from '@/stores/itemsStore'
+import { useCartStore } from '@/stores/cartStore'
 
 const authStore = useAuthUserStore()
 const itemsStore = useItemsStore()
+const cartStore = useCartStore()
 const theme = ref(localStorage.getItem('theme') ?? 'light')
 const isLoggedIn = ref(false)
 
@@ -37,7 +40,20 @@ onMounted(() => {
 
         <v-spacer></v-spacer>
 
-        <ProfileHeader v-if="isLoggedIn"></ProfileHeader>
+        <div v-if="isLoggedIn" class="d-flex align-center">
+          <v-badge
+            :content="cartStore.totalItems"
+            :model-value="cartStore.totalItems > 0"
+            color="pink-darken-2"
+            class="mr-4"
+          >
+            <v-btn icon @click="cartStore.toggleCart">
+              <v-icon>mdi-cart</v-icon>
+            </v-btn>
+          </v-badge>
+          
+          <ProfileHeader></ProfileHeader>
+        </div>
 
         <v-btn icon @click="onToggleTheme">
           <v-icon v-if="theme === 'light'">mdi-weather-night</v-icon>
@@ -52,6 +68,9 @@ onMounted(() => {
       </v-main>
 
       <v-footer color="pink" class="font-weight-bold" app border> alrights 2025</v-footer>
+      
+      <!-- Cart Drawer -->
+      <CartDrawer v-if="isLoggedIn" />
     </v-app>
   </v-responsive>
 </template>
