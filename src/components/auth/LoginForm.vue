@@ -1,45 +1,83 @@
 <script setup>
 import { ref } from 'vue'
 import { requiredValidator, passwordValidator } from '@/components/utils/validator'
+import { useRouter } from 'vue-router'
+import AlertNotication from '@/components/common/AlertNotificatio.vue'
+import { formActionDefault, supabase } from '@/components/utils/supabase'
 
-const form = ref(null)
-const username = ref('')
-const password = ref('')
+// Utilize pre-defined vue functions
+const router = useRouter()
 
-const usernameRules = [
-  requiredValidator,
-  (value) => value.length >= 3 || 'Username must be at least 3 characters',
-]
+// Load Variables
+const formDataDefault = {
+  email: '',
+  password: '',
+}
+const formData = ref({
+  ...formDataDefault,
+})
+const formAction = ref({
+  ...formActionDefault,
+})
+const isPasswordVisible = ref(false)
+const refVForm = ref()
 
-const passwordRules = [requiredValidator, passwordValidator]
+const onSubmit = async () => {
+  // Reset Form Action utils; Turn on processing at the same time
+  formAction.value = { ...formActionDefault, formProcess: true }
 
-const handleSubmit = async () => {
-  const { valid } = await form.value.validate()
-  if (valid) {
-    // TODO: Implement login logic
-    console.log('Form submitted:', { username: username.value, password: password.value })
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: formData.value.email,
+    password: formData.value.password,
+  })
+
+  if (error) {
+    // Add Error Message and Status Code
+    formAction.value.formErrorMessage = error.message
+    formAction.value.formStatus = error.status
+  } else if (data) {
+    // Add Success Message
+    formAction.value.formSuccessMessage = 'Successfully Logged Account.'
+    // Redirect Acct to Dashboard
+    router.replace('/dashboard')
   }
+
+  // Reset Form
+  refVForm.value?.reset()
+  // Turn off processing
+  formAction.value.formProcess = false
+}
+
+const onFormSubmit = () => {
+  refVForm.value?.validate().then(({ valid }) => {
+    if (valid) onSubmit()
+  })
 }
 </script>
 
 <template>
-  <v-form ref="form" @submit.prevent="handleSubmit" fast-fail>
+  <AlertNotication
+    :formSuccessMessage="formAction.formSuccessMessage"
+    :formErrorMessage="formAction.formErrorMessage"
+  />
+  <v-form ref="refVForm" @submit.prevent="onFormSubmit" fast-fail>
     <v-text-field
-      v-model="username"
-      :rules="usernameRules"
-      label="Username"
-      type="text"
+      prepend-inner-icon="mdi-email-outline"
+      v-model="formData.email"
+      label="Email"
+      type="email"
       variant="outlined"
-      required
+      :rules="[requiredValidator]"
     ></v-text-field>
 
     <v-text-field
-      v-model="password"
-      :rules="passwordRules"
+      v-model="formData.password"
+      :rules="[requiredValidator]"
       label="Password"
-      type="password"
+      :type="isPasswordVisible ? 'text' : 'password'"
+      :append-inner-icon="isPasswordVisible ? 'mdi-eye-off' : 'mdi-eye'"
+      @click:append-inner="isPasswordVisible = !isPasswordVisible"
       variant="outlined"
-      required
     ></v-text-field>
 
     <div class="d-flex justify-center">
@@ -50,6 +88,10 @@ const handleSubmit = async () => {
           class="mt-2 submit-button"
           type="submit"
           ripple
+          prepend-icon="mdi-login"
+          :loading="formAction.formProcess"
+          :disabled="formAction.formProcess"
+          block
         >
           Login
         </v-btn>
