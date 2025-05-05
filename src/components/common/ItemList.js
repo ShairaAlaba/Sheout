@@ -1,69 +1,88 @@
 export const items = [
   {
     name: 'Sweetra',
-    discription:
+    description:
       'Solid Color Spaghetti Strap Ruched Slim Fit Casual Vacation Dress For New Year Holiday Party',
     price: 546,
     image: '/public/images/item1.gif',
+    quantity: 10,
   },
+
   {
-    name: 'Slaydiva ',
-    discription: "Plus Size Women's Summer Beach Fashionable Halter Neck Bikini Set & Cover Set",
+    name: 'Sunnyshic',
+    description:
+      " Plus Size Women's Boho Apricot Floral Print Strapless Romper With Layered Hem, For Summer",
+    price: 527,
+    image: '/public/images/item3.jpg',
+    quantity: 100,
+  },
+
+  {
+    name: 'Slaydeva ',
+    description: "Plus Size Women's Summer Beach Fashionable Halter Neck Bikini Set & Cover Set",
     price: 590,
     image: '/public/images/item2.jpg',
+    quantity: 20,
   },
 
   {
     name: 'Elamini',
-    discription:
+    description:
       "Women's Full Print Halter Neck Dress With Asymmetrical Ruffle Hem, Vacation Style",
     price: 649,
     image: '/public/images/item4.jpg',
+    quantity: 30,
   },
 
   {
     name: 'Aloruh',
-    discription:
+    description:
       "Women's Flowy Floral Print Ruffle Trim V-Neck Dress, Romantic For Vacation & Dating, Spring/Summer Easter Dress Women",
     price: 733,
     image: '/public/images/item5.jpg',
+    quantity: 40,
   },
 
   {
     name: 'Soleia',
-    discription:
+    description:
       'Beach Metal Shell Decor Vacation White Side High Waist Hollow Out Jacquard Knitted Elastic Fish Tail Dress, Summer Dresses For Women With Ruffles',
     price: 844,
     image: '/public/images/item6.jpg',
+    quantity: 50,
   },
 
   {
     name: 'Rafferiza',
-    discription: "Women's Summer Color Block Spaghetti Strap Backless Dress",
+    description: "Women's Summer Color Block Spaghetti Strap Backless Dress",
     price: 588,
     image: '/public/images/item7.jpg',
+    quantity: 60,
   },
 
   {
     name: 'Dazy',
-    discription: 'Elegant Solid Color Lace Trim Fitted Slip Dress, Summer Elegant Sundress',
+    description: 'Elegant Solid Color Lace Trim Fitted Slip Dress, Summer Elegant Sundress',
     price: 510,
     image: '/public/images/item8.jpg',
+    quantity: 70,
   },
 
   {
     name: 'Siren Gaze',
-    discription:
+    description:
       "Women's Fashionable Color-Block Printed Ruched Sleeveless Dress With Elastic Waist For Summer Bodycon Dress Casual Dress Long Dress",
     price: 232,
     image: '/public/images/item9.jpg',
+    quantity: 80,
   },
 
   {
     name: 'Poéselle',
-    discription:
+    description:
       " Women's Fashion Sweet V-Neck Floral Print A-Line Dress, Floral Dresses, Spring Floral Dresses, Beach Women's Dresses, Y2k Summer, Floral Dresses, Cute Summer Dresses,Summer Dresses For Women",
     price: 291,
     image: '/public/images/item10.jpg',
+    quantity: 90,
   },
 ]
